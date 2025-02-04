@@ -1,0 +1,22 @@
+[2025-02-03T01:22:20.109Z] [INFO] Autenticado com sucesso
+[2025-02-03T01:22:21.775Z] [INFO] Client pronto
+[2025-02-03T01:22:33.709Z] [WARN] Tentativa 1 para 554391964950@c.us
+[2025-02-03T01:22:33.866Z] [WARN] Tentativa 2 para 554391964950@c.us
+[2025-02-03T01:22:33.875Z] [WARN] Tentativa 3 para 554391964950@c.us
+[2025-02-03T01:22:33.878Z] [ERROR] Falha no processamento para 554391964950@c.us: AggregateError
+[2025-02-03T01:24:48.819Z] [INFO] Autenticado com sucesso
+[2025-02-03T01:24:48.990Z] [INFO] Client pronto
+[2025-02-03T01:24:50.655Z] [CRITICAL] Erro não tratado: Evaluation failed: Error: wid error: invalid wid
+    at new Error (<anonymous>:6:31)
+    at h (https://static.whatsapp.net/rsrc.php/v4/yO/r/w_t0SB6TdZS.js:71:191)
+    at new a (https://static.whatsapp.net/rsrc.php/v4/yh/r/40y0oz4lWKd.js:140:1558)
+    at Object.o [as createWid] (https://static.whatsapp.net/rsrc.php/v4/yh/r/40y0oz4lWKd.js:142:847)
+    at pptr://__puppeteer_evaluation_script__:2:53
+[2025-02-03T01:25:06.498Z] [CRITICAL] Erro não tratado: Evaluation failed: Error: wid error: invalid wid
+    at new Error (<anonymous>:6:31)
+    at h (https://static.whatsapp.net/rsrc.php/v4/yO/r/w_t0SB6TdZS.js:71:191)
+    at new a (https://static.whatsapp.net/rsrc.php/v4/yh/r/40y0oz4lWKd.js:140:1558)
+    at Object.o [as createWid] (https://static.whatsapp.net/rsrc.php/v4/yh/r/40y0oz4lWKd.js:142:847)
+    at pptr://__puppeteer_evaluation_script__:2:53
+[02/02/2025, 22:27:02] [INFO] Autenticação realizada
+[02/02/2025, 22:27:02] [INFO] Bot operacional
