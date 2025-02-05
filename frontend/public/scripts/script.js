@@ -301,17 +301,32 @@ async function fetchGenres() {
     const response = await axios.get(`${BASE_URL}/genres`, {
       params: { language: currentLanguage }
     });
-    genres = response.data;
+    
+    // Verifica se a resposta tem a estrutura esperada
+    if (Array.isArray(response.data)) {
+      genres = response.data;
+    } else if (response.data && Array.isArray(response.data.genres)) {
+      genres = response.data.genres;
+    } else {
+      console.error('Unexpected genres response format:', response.data);
+      genres = [];
+    }
+    
     updateGenreFilter();
   } catch (error) {
-    console.error("Error fetching genres:", error);
+    console.error('Error fetching genres:', error);
+    genres = [];
+    updateGenreFilter();
   }
 }
 
 function updateGenreFilter() {
   const genreFilter = document.getElementById("genre-filter");
+  if (!genreFilter) return;
+  
   genreFilter.innerHTML = "";
 
+  // Botão "Todos os Gêneros"
   const allGenresButton = document.createElement("button");
   allGenresButton.textContent = translations[currentLanguage].allGenres;
   allGenresButton.classList.add("active");
@@ -322,21 +337,24 @@ function updateGenreFilter() {
   });
   genreFilter.appendChild(allGenresButton);
 
-  genres.forEach((genre) => {
-    const button = document.createElement("button");
-    button.textContent = genre.name;
-    button.addEventListener("click", () => {
-      const index = selectedGenres.indexOf(genre.id);
-      if (index > -1) {
-        selectedGenres.splice(index, 1);
-      } else {
-        selectedGenres.push(genre.id);
-      }
-      updateGenreButtonStates();
-      fetchMovieLists();
+  // Verifica se genres é um array antes de usar forEach
+  if (Array.isArray(genres)) {
+    genres.forEach((genre) => {
+      const button = document.createElement("button");
+      button.textContent = genre.name;
+      button.addEventListener("click", () => {
+        const index = selectedGenres.indexOf(genre.id);
+        if (index > -1) {
+          selectedGenres.splice(index, 1);
+        } else {
+          selectedGenres.push(genre.id);
+        }
+        updateGenreButtonStates();
+        fetchMovieLists();
+      });
+      genreFilter.appendChild(button);
     });
-    genreFilter.appendChild(button);
-  });
+  }
 }
 
 function updateGenreButtonStates() {
@@ -354,55 +372,70 @@ function updateGenreButtonStates() {
 }
 
 async function fetchMovieLists() {
-  const currentYear = new Date().getFullYear();
-  const genreParam = selectedGenres.length > 0 ? selectedGenres.join(",") : "";
-  
   try {
-    const [mostViewed, boxOffice, topRated] = await Promise.all([
-      axios.get(`${BASE_URL}/discover/most-viewed`, {
-        params: {
-          language: currentLanguage,
-          year: currentYear,
-          genres: genreParam
-        }
-      }),
-      axios.get(`${BASE_URL}/discover/box-office`, {
-        params: {
-          language: currentLanguage,
-          genres: genreParam
-        }
-      }),
-      axios.get(`${BASE_URL}/discover/top-rated`, {
-        params: {
-          language: currentLanguage,
-          genres: genreParam
-        }
-      })
-    ]);
+    // Most Viewed Movies in 2025
+    const mostViewedResponse = await axios.get(`${BASE_URL}/discover/most-viewed`, {
+      params: {
+        language: currentLanguage,
+        with_genres: selectedGenres.join(',')
+      }
+    });
+    updateMovieList('#most-viewed .movie-list', mostViewedResponse.data.results);
 
-    updateMovieList('most-viewed', mostViewed.data.results.slice(0, 10));
-    updateMovieList('box-office-hits', boxOffice.data.results.slice(0, 10));
-    updateMovieList('top-rated', topRated.data.results.slice(0, 10));
+    // Box Office Hits
+    const boxOfficeResponse = await axios.get(`${BASE_URL}/discover/box-office`, {
+      params: {
+        language: currentLanguage,
+        with_genres: selectedGenres.join(',')
+      }
+    });
+    updateMovieList('#box-office-hits .movie-list', boxOfficeResponse.data.results);
+
+    // Top Rated Movies
+    const topRatedResponse = await axios.get(`${BASE_URL}/discover/top-rated`, {
+      params: {
+        language: currentLanguage,
+        with_genres: selectedGenres.join(',')
+      }
+    });
+    updateMovieList('#top-rated .movie-list', topRatedResponse.data.results);
   } catch (error) {
     console.error('Error fetching movie lists:', error);
   }
 }
 
-function updateMovieList(listId, movies) {
-  const movieList = document.querySelector(`#${listId} .movie-list`);
-  movieList.innerHTML = "";
-  movies.forEach((movie) => {
-    const movieItem = document.createElement("div");
-    movieItem.className = "movie-item";
-    movieItem.innerHTML = `
-          <img class="movie-poster" src="${IMG_BASE_URL}${movie.poster_path}" alt="${movie.title}" loading="lazy">
-          <p class="movie-item-title">${movie.title}</p>
-        `;
-    movieItem.addEventListener("click", () => fetchMovieData(movie.id));
-    movieList.appendChild(movieItem);
+// Função auxiliar para atualizar a lista de filmes
+function updateMovieList(selector, movies) {
+  const container = document.querySelector(selector);
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  movies.forEach(movie => {
+    const movieElement = createMovieElement(movie);
+    container.appendChild(movieElement);
   });
+}
 
-  addHorizontalScroll(movieList);
+// Função para criar elemento de filme
+function createMovieElement(movie) {
+  const div = document.createElement('div');
+  div.className = 'movie-item';
+  div.onclick = () => fetchMovieData(movie.id);
+  
+  const img = document.createElement('img');
+  img.className = 'movie-poster';
+  img.src = movie.poster_path ? `${IMG_BASE_URL}${movie.poster_path}` : 'path/to/placeholder.jpg';
+  img.alt = movie.title;
+  
+  const title = document.createElement('div');
+  title.className = 'movie-item-title';
+  title.textContent = movie.title;
+  
+  div.appendChild(img);
+  div.appendChild(title);
+  
+  return div;
 }
 
 async function fetchMovieData(movieId = null) {
